@@ -437,6 +437,76 @@ class Keywords:
             request["data"] = self._input_data(data)
         return self._request(endpoint, request, validate, loglevel)["response"]
 
+@keyword(name="GET_WITHOUT_CONTENT_TYPE", tags=("http",))
+    def get_without_content_type(
+        self,
+        endpoint,
+        query=None,
+        timeout=None,
+        allow_redirects=None,
+        validate=True,
+        headers=None,
+        data=None,
+        loglevel=None,
+    ):
+        """*Sends a GET request to the endpoint.*
+
+        The endpoint is joined with the URL given on library init (if any).
+        If endpoint starts with ``http://`` or ``https://``, it is assumed
+        an URL outside the tested API (which may affect logging).
+
+        *Options*
+
+        ``query``: Request query parameters as a JSON object or a dictionary.
+        Alternatively, query parameters can be given as part of endpoint as well.
+
+        ``timeout``: A number of seconds to wait for the response before failing the keyword.
+
+        ``allow_redirects``: If false, do not follow any redirects.
+
+        ``validate``: If false, skips any request and response validations set
+        by expectation keywords and a spec given on library init.
+
+        ``headers``: Headers as a JSON object to add or override for the request.
+
+        ``data``: Data as a dictionary, bytes or a file-like object
+
+        ``loglevel``: INFO, DEBUG, TRACE, WARN, ERROR, HTML. Other values are
+        automatically converted to WARN (library default).
+
+        *Examples*
+
+        | `GET` | /users/1 |
+        | `GET` | /users | timeout=2.5 |
+        | `GET` | /users?_limit=2 |
+        | `GET` | /users | _limit=2 |
+        | `GET` | /users | { "_limit": "2" } |
+        | `GET` | https://jsonplaceholder.typicode.com/users | headers={ "Authentication": "" } |
+
+        *Data argument is new in version 1.1.0*
+        """
+        endpoint = self._input_string(endpoint)
+        request = deepcopy(self.request)
+        request["method"] = "GET"
+        request["query"] = OrderedDict()
+        query_in_url = OrderedDict(parse_qsl(urlparse(endpoint).query))
+        if query_in_url:
+            request["query"].update(query_in_url)
+            endpoint = endpoint.rsplit("?", 1)[0]
+        if query:
+            request["query"].update(self._input_object(query))
+        if allow_redirects is not None:
+            request["allowRedirects"] = self._input_boolean(allow_redirects)
+        if timeout is not None:
+            request["timeout"] = self._input_timeout(timeout)
+        validate = self._input_boolean(validate)
+        del request["headers"]["Content-Type"]
+        if headers:
+            request["headers"].update(self._input_object(headers))
+        if data:
+            request["data"] = self._input_data(data)
+        return self._request(endpoint, request, validate, loglevel)["response"]
+        
     @keyword(name="POST", tags=("http",))
     def post(
         self,

@@ -437,7 +437,7 @@ class Keywords:
             request["data"] = self._input_data(data)
         return self._request(endpoint, request, validate, loglevel)["response"]
 
-    @keyword(name="GET_WITHOUT_CONTENT_TYPE", tags=("http",))
+    @keyword(name="GET Without Content Type", tags=("http",))
     def get_without_content_type(
         self,
         endpoint,
